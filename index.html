@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Know How CAT — Jerárquicos Salud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --violet:#6C4AB6; --violet-dark:#4B2E8C;
+    --green:#2E9E6B; --teal:#17A398;
+    --navy:#1C2541; --navy-soft:#2A3358;
+    --bg:#FAFAFC; --card:#FFFFFF;
+    --ink:#232134; --ink-soft:#8582A0; --line:#ECEAF4;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased; display:flex; min-height:100vh;
+  }
+  h1,h2,h3,.brand-name{font-family:'Poppins',sans-serif;}
+  button{font-family:inherit; cursor:pointer;}
+  a{color:inherit;}
+
+  /* ================= SIDEBAR ================= */
+  .sidebar{
+    width:270px; flex:0 0 270px;
+    background:linear-gradient(190deg, var(--navy) 0%, var(--navy-soft) 100%);
+    color:#fff; position:sticky; top:0; height:100vh;
+    display:flex; flex-direction:column; padding:26px 20px; z-index:10; overflow-y:auto;
+  }
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:22px; cursor:pointer; border-radius:10px; padding:4px; margin-left:-4px; transition:background .15s ease;}
+  .brand:hover{background:rgba(255,255,255,.07);}
+  .brand:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+  .brand-mark{
+    width:34px; height:34px; border-radius:10px; flex:0 0 auto;
+    background:linear-gradient(135deg, var(--teal), var(--violet));
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-family:'Poppins',sans-serif; font-size:15px; color:#fff;
+  }
+  .brand-name{font-size:15px; font-weight:700; line-height:1.15;}
+  .brand-name span{display:block; font-size:11px; font-weight:500; color:rgba(255,255,255,.55); font-family:'Inter',sans-serif; margin-top:1px;}
+
+  .auth-box{
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+    border-radius:12px; padding:12px; margin-bottom:20px; font-size:12.5px;
+  }
+  .auth-box .who{font-weight:700; color:#fff; margin-bottom:2px;}
+  .auth-box .role{color:rgba(255,255,255,.55); margin-bottom:8px;}
+  .btn-mini{
+    width:100%; padding:7px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.08); color:#fff; font-size:12px; font-weight:600;
+  }
+  .btn-mini:hover{background:rgba(255,255,255,.16);}
+  .btn-mini-accent{
+    background:linear-gradient(120deg, var(--teal), var(--violet)); border:none;
+  }
+
+  .nav-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.09em; color:rgba(255,255,255,.4); font-weight:600; margin:6px 4px 10px;}
+  nav.side-nav{display:flex; flex-direction:column; gap:3px;}
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:10px; cursor:pointer;
+    color:rgba(255,255,255,.72); font-size:13.5px; font-weight:500; transition:background .15s ease, color .15s ease;
+    background:none; border:none; text-align:left; width:100%;
+  }
+  .nav-item .dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto;}
+  .nav-item:hover{background:rgba(255,255,255,.07); color:#fff;}
+  .nav-item.active{background:rgba(255,255,255,.12); color:#fff;}
+
+  .side-footer{margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,.1); font-size:11.5px; color:rgba(255,255,255,.4); line-height:1.6;}
+
+  /* ================= MAIN ================= */
+  main{flex:1; min-width:0;}
+  .view{display:none;}
+  .view.active{display:block; animation:viewFadeIn .25s ease;}
+  @keyframes viewFadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .view.active{animation:none;} }
+
+  /* ---- hero / search ---- */
+  .hero{
+    position:relative; padding:56px 56px 36px; overflow:hidden; text-align:center;
+    background:
+      radial-gradient(700px 320px at 50% -20%, rgba(108,74,182,.10), transparent 65%),
+      radial-gradient(500px 260px at 90% 10%, rgba(23,163,152,.10), transparent 70%);
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--violet-dark);
+    background:#EFE9FB; padding:5px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--green);}
+  .hero h1{font-size:clamp(26px,3.2vw,34px); font-weight:800; letter-spacing:-0.02em; color:var(--navy); margin-bottom:8px;}
+  .hero p{font-size:14.5px; line-height:1.6; color:var(--ink-soft); max-width:480px; margin:0 auto 26px;}
+  .hero-illustration-top{width:130px; height:96px; margin:0 auto 4px; display:block; position:relative; z-index:1;}
+  .hero-orbit{transform-origin:85px 60px; animation:orbit 16s linear infinite;}
+  @keyframes orbit{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
+  .hero-pulse{animation:pulse 2.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.5;}}
+  @media (prefers-reduced-motion: reduce){
+    .hero-orbit{animation:none;}
+    .hero-pulse{animation:none;}
+  }
+
+  .search-hero{width:100%; max-width:620px; margin:0 auto;}
+  .search-shell{position:relative; border-radius:16px; padding:2px; background:linear-gradient(120deg, var(--violet), var(--teal), var(--green)); background-size:200% 200%;}
+  .search-shell.focused{animation:shimmer 3s ease infinite; box-shadow:0 16px 34px -18px rgba(108,74,182,.4);}
+  @keyframes shimmer{0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;}}
+  .search-inner{background:#fff; border-radius:14px; display:flex; align-items:center; gap:10px; padding:13px 16px;}
+  .search-inner svg{flex:0 0 auto; color:var(--violet);}
+  .search-inner input{border:none; outline:none; flex:1; font-family:'Inter',sans-serif; font-size:15px; color:var(--ink); background:transparent;}
+  .search-meta{margin-top:9px; font-size:12.5px; color:var(--ink-soft);}
+  .kbd-hint{
+    font-size:11px; font-weight:700; color:var(--ink-soft); border:1px solid var(--line); border-radius:6px;
+    padding:2px 7px; flex:0 0 auto; background:var(--bg);
+  }
+  .quick-chips{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px;}
+  .quick-chip{
+    background:var(--card); border:1px solid var(--line); border-radius:999px; padding:6px 14px;
+    font-size:12.5px; color:var(--navy); cursor:pointer; transition:border-color .15s ease, transform .15s ease, background .15s ease;
+  }
+  .quick-chip:hover{border-color:var(--violet); transform:translateY(-1px); background:#FBFAFE;}
+  .stats-strip{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:24px;}
+  .stat-pill{
+    display:flex; align-items:baseline; gap:6px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:9px 16px;
+  }
+  .stat-pill .stat-num{font-family:'Poppins',sans-serif; font-size:19px; font-weight:800; color:var(--violet-dark);}
+  .stat-pill .stat-label{font-size:11.5px; color:var(--ink-soft); font-weight:500;}
+  .search-meta b{color:var(--violet-dark);}
+  mark{background:linear-gradient(120deg, rgba(108,74,182,.18), rgba(23,163,152,.18)); color:var(--violet-dark); font-weight:700; border-radius:3px; padding:0 1px;}
+
+  .global-results{max-width:680px; margin:18px auto 0; text-align:left; display:flex; flex-direction:column; gap:8px;}
+  .global-result{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+    display:flex; align-items:center; gap:10px; cursor:pointer;
+  }
+  .global-result:hover{border-color:var(--violet);}
+  .global-result .gr-icon{font-size:16px;}
+  .global-result .gr-title{font-size:13.5px; font-weight:600; flex:1;}
+  .global-result .gr-sector{font-size:11px; color:var(--ink-soft); background:var(--bg); padding:3px 8px; border-radius:6px;}
+  .global-empty{text-align:center; color:var(--ink-soft); font-size:13.5px; padding:24px 10px;}
+  .global-empty svg{margin-bottom:10px; opacity:.7;}
+
+  /* ---- category sections (portada) ---- */
+  .content-wrap{padding:8px 56px 90px;}
+
+  /* ---- panel dinámico (recién actualizado) ---- */
+  .dynamic-panel{max-width:1000px; margin:0 auto 8px;}
+  .dynamic-panel-head{display:flex; align-items:center; gap:8px; margin-bottom:12px;}
+  .dynamic-panel-head h2{font-size:14px; font-weight:700; color:var(--navy);}
+  .dynamic-panel-head .pulse-dot{width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s ease-in-out infinite;}
+  .recent-row{display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin;}
+  .recent-card{
+    flex:0 0 auto; min-width:220px; max-width:260px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px; cursor:pointer; transition:border-color .15s ease, transform .15s ease;
+  }
+  .recent-card:hover{border-color:var(--violet); transform:translateY(-2px);}
+  .recent-card .rc-sector{font-size:10.5px; color:var(--teal); font-weight:700; text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px;}
+  .recent-card .rc-title{font-size:13px; font-weight:600; color:var(--ink); line-height:1.35; margin-bottom:6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .recent-card .rc-date{font-size:10.5px; color:var(--ink-soft);}
+
+  /* ---- tarjetas grandes de categoría ---- */
+  .cat-tiles-wrap{max-width:1000px; margin:28px auto 0;}
+  .cat-tiles-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;}
+  .cat-tile{
+    background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 22px 20px;
+    cursor:pointer; text-align:left; position:relative; overflow:hidden;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .cat-tile:hover{transform:translateY(-4px); box-shadow:0 22px 40px -20px rgba(28,37,65,.4);}
+  .cat-tile::before{
+    content:""; position:absolute; top:0; right:0; width:120px; height:120px; border-radius:50%;
+    background:var(--tile-color, var(--violet)); opacity:.10; transform:translate(35%,-35%);
+    transition:transform .3s ease, opacity .3s ease;
+  }
+  .cat-tile:hover::before{transform:translate(25%,-25%) scale(1.15); opacity:.16;}
+  .cat-tile-icon{
+    width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+    font-size:22px; margin-bottom:14px; position:relative; z-index:1;
+    background:var(--tile-color, var(--violet)); box-shadow:0 8px 18px -8px var(--tile-color, var(--violet));
+  }
+  .cat-tile h3{font-size:16px; font-weight:700; color:var(--navy); margin-bottom:5px; position:relative; z-index:1;}
+  .cat-tile .cat-tile-meta{font-size:12.5px; color:var(--ink-soft); position:relative; z-index:1;}
+  .cat-tile .cat-tile-meta b{color:var(--ink);}
+  .cat-tile .cat-tile-arrow{
+    position:absolute; bottom:20px; right:20px; width:28px; height:28px; border-radius:50%;
+    background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--ink-soft);
+    transition:background .2s ease, color .2s ease, transform .2s ease;
+  }
+  .cat-tile:hover .cat-tile-arrow{background:var(--tile-color, var(--violet)); color:#fff; transform:translateX(3px);}
+
+  /* ---- búsqueda dentro de categoría ---- */
+  .search-wrap-cat{max-width:640px; margin:22px auto 0; padding:0 32px; text-align:center;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-top:3px solid transparent; border-radius:14px;
+    padding:16px 16px 15px; cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    display:flex; flex-direction:column; gap:9px;
+    position:relative; overflow:hidden;
+  }
+  .card::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%);
+    background-size:220% 220%; background-position:120% 0;
+    transition:background-position .55s ease;
+  }
+  .card:hover::after{background-position:-20% 0;}
+  .card:hover{transform:translateY(-3px); box-shadow:0 16px 28px -16px rgba(28,37,65,.38); border-top-color:var(--teal);}
+  .card:hover .card-icon{transform:scale(1.08) rotate(-3deg);}
+  .card-icon{
+    width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;
+    background:linear-gradient(135deg,#F1EBFB,#D3BDF7); transition:transform .25s ease;
+  }
+  .card h3{font-size:14px; font-weight:600; color:var(--ink);}
+  .card .sub{font-size:11.5px; color:var(--ink-soft);}
+  @media (prefers-reduced-motion: reduce){
+    .card::after{display:none;}
+    .card:hover .card-icon{transform:none;}
+  }
+
+  /* ---- sector view ---- */
+  .sector-topbar{
+    background:linear-gradient(120deg, var(--navy) 0%, var(--navy-soft) 100%); color:#fff; padding:18px 32px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px; position:sticky; top:0; z-index:20;
+  }
+  .crumb{display:flex; align-items:center; gap:8px; font-size:13.5px; color:rgba(255,255,255,.7);}
+  .crumb button{background:none; border:none; color:rgba(255,255,255,.7); font-size:13.5px; padding:0;}
+  .crumb button:hover{color:#fff;}
+  .crumb .sep{opacity:.4;}
+  .crumb .current{color:#fff; font-weight:600;}
+  .sector-head{max-width:900px; margin:0 auto; padding:34px 32px 18px; text-align:center;}
+  .sector-head h1{font-size:clamp(24px,3vw,32px); font-weight:800; color:var(--navy); margin-bottom:8px;}
+  .sector-head p{font-size:14px; color:var(--ink-soft); max-width:560px; margin:0 auto;}
+
+  .sector-actions{max-width:760px; margin:14px auto 0; padding:0 32px; display:flex; justify-content:flex-end;}
+  .btn-add{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700; color:#fff;
+    background:linear-gradient(120deg,var(--violet),var(--teal)); border:none; padding:9px 16px; border-radius:10px;
+  }
+
+  .list-wrap{max-width:760px; margin:0 auto; padding:22px 32px 90px;}
+  .item{background:var(--card); border:1px solid var(--line); border-left:4px solid transparent; border-radius:14px; margin-bottom:10px; overflow:hidden; transition:border-color .15s ease;}
+  .item:hover{border-left-color:var(--teal);}
+  .item.open{border-left-color:var(--teal); box-shadow:0 10px 24px -18px rgba(23,163,152,.35);}
+  .item-head{display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer; user-select:none;}
+  .item-head:hover{background:#FBFAFE;}
+  .date-badge{flex:0 0 54px; width:54px; background:linear-gradient(160deg,#EAF7F5,#F1EBFB); border-radius:10px; padding:7px 3px; text-align:center;}
+  .date-badge .lbl{display:block; font-size:8px; font-weight:700; letter-spacing:.05em; color:var(--teal); text-transform:uppercase;}
+  .date-badge .val{display:block; font-size:10.5px; font-weight:700; color:var(--violet-dark); margin-top:3px;}
+  .date-badge.empty{background:var(--bg);}
+  .item-title{font-size:14.5px; font-weight:600; color:var(--ink); flex:1; min-width:0;}
+  .item-edit-btn{flex:0 0 auto; font-size:12px; color:var(--violet-dark); background:#F1EBFB; border:none; border-radius:8px; padding:5px 9px; font-weight:700;}
+  .chevron{flex:0 0 auto; width:18px; height:18px; color:var(--violet); transition:transform .18s ease;}
+  .item.open .chevron{transform:rotate(180deg);}
+  .item-body{max-height:0; overflow:hidden; transition:max-height .3s ease;}
+  .item.open .item-body{max-height:4000px;}
+  .item-body-inner{padding:0 18px 18px 80px; font-size:13.8px; line-height:1.6; color:var(--ink); border-top:1px solid var(--line); padding-top:14px;}
+  .item-body-inner p{margin-bottom:10px;}
+  .item-body-inner .lbl-badge{display:inline-block; font-size:10.5px; font-weight:700; color:#fff; background:linear-gradient(120deg,var(--violet),var(--teal)); padding:2px 9px; border-radius:6px; margin-bottom:5px;}
+  .item-body-inner ul{margin:0 0 12px 0; padding-left:20px;}
+  .item-body-inner ul li{margin-bottom:5px;}
+  .item-body-inner .fields-table{width:100%; border-collapse:collapse; margin-bottom:10px;}
+  .item-body-inner .fields-table td{padding:5px 8px; border-bottom:1px solid var(--line); font-size:13px;}
+  .item-body-inner .fields-table td:first-child{color:var(--ink-soft); font-weight:600; width:38%;}
+  .links-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+  .link-chip{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:var(--violet-dark); background:#F1EBFB; border:1px solid #E3D8F7; border-radius:8px; padding:5px 10px; text-decoration:none;}
+  .link-chip:hover{background:#E3D8F7;}
+  .link-chip.net-path-chip{cursor:pointer;}
+  .link-chip.net-path-chip em{font-style:normal; opacity:.7; font-size:10.5px;}
+  .link-chip.net-path-chip.copied{background:#E4F6F5; border-color:#B9E8E4; color:var(--teal);}
+  .attach-row{margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+  .attach-row .attach-label{font-size:11px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; margin-bottom:6px;}
+
+  .no-results{display:none; text-align:center; color:var(--ink-soft); font-size:14px; padding:40px 0;}
+  .no-results svg{margin-bottom:12px; opacity:.7;}
+  .loading{text-align:center; color:var(--ink-soft); font-size:14px; padding:40px 0; display:flex; align-items:center; justify-content:center; gap:9px;}
+  .loading-spinner{
+    width:14px; height:14px; border-radius:50%; flex:0 0 auto;
+    border:2px solid var(--line); border-top-color:var(--violet);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .loading-spinner{animation:none;} }
+
+  /* ---- foco visible global, accesibilidad ---- */
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, .card:focus-visible, .item-head:focus-visible{
+    outline:2px solid var(--teal); outline-offset:2px; border-radius:4px;
+  }
+  .skip-link{
+    position:absolute; left:-999px; top:0; background:var(--navy); color:#fff;
+    padding:10px 16px; border-radius:0 0 8px 0; z-index:200; font-size:13px; font-weight:600;
+  }
+  .skip-link:focus{left:0;}
+
+  /* ---- historial ---- */
+  .hist-filters{max-width:760px; margin:18px auto 0; padding:0 32px; display:flex; gap:10px; flex-wrap:wrap;}
+  .hist-filters select{
+    border:1px solid var(--line); border-radius:9px; padding:8px 10px; font-size:12.5px; font-family:inherit;
+    color:var(--ink); background:var(--card);
+  }
+  .hist-item{background:var(--card); border:1px solid var(--line); border-left:4px solid transparent; border-radius:12px; padding:12px 16px; margin-bottom:8px; display:flex; align-items:flex-start; gap:12px;}
+  .hist-item.accion-crear{border-left-color:var(--green);}
+  .hist-item.accion-editar{border-left-color:var(--violet);}
+  .hist-item.accion-eliminar{border-left-color:#E05C5C;}
+  .hist-item.accion-adjuntar_archivo, .hist-item.accion-eliminar_archivo{border-left-color:var(--teal);}
+  .hist-badge{flex:0 0 auto; font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:.02em;}
+  .hist-badge.accion-crear{background:#E4F6EF; color:#1D7A50;}
+  .hist-badge.accion-editar{background:#F1EBFB; color:var(--violet-dark);}
+  .hist-badge.accion-eliminar{background:#FBEAEA; color:#C0392B;}
+  .hist-badge.accion-adjuntar_archivo, .hist-badge.accion-eliminar_archivo{background:#E4F6F5; color:var(--teal);}
+  .hist-main{flex:1; min-width:0;}
+  .hist-tema{font-size:13.5px; font-weight:600; color:var(--ink);}
+  .hist-meta{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .hist-meta b{color:var(--ink);}
+  .hist-diff{margin-top:8px; font-size:12px; background:var(--bg); border-radius:8px; padding:8px 10px; display:none;}
+  .hist-diff.open{display:block;}
+  .hist-toggle-diff{font-size:11.5px; color:var(--violet-dark); background:none; border:none; font-weight:700; margin-top:4px; padding:0;}
+
+  /* ---- login / modal ---- */
+  .overlay{position:fixed; inset:0; background:rgba(28,37,65,.5); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+  .overlay.active{display:flex;}
+  .modal{background:#fff; border-radius:16px; padding:28px; width:100%; max-width:440px; max-height:90vh; overflow-y:auto;}
+  .modal h2{font-size:18px; font-weight:700; color:var(--navy); margin-bottom:16px;}
+  .field-group{margin-bottom:14px;}
+  .field-group label{display:block; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:5px;}
+  .field-group input, .field-group textarea, .field-group select{
+    width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 12px; font-size:13.5px; font-family:inherit; color:var(--ink);
+  }
+  .field-group input:focus, .field-group textarea:focus{outline:none; border-color:var(--violet);}
+  .modal-actions{display:flex; gap:10px; margin-top:18px;}
+  .btn-primary{flex:1; background:linear-gradient(120deg,var(--violet),var(--teal)); color:#fff; border:none; border-radius:10px; padding:11px; font-weight:700; font-size:13.5px;}
+  .btn-secondary{flex:0 0 auto; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:11px 16px; font-weight:600; font-size:13.5px;}
+  .btn-danger{background:#FBEAEA; color:#C0392B; border:1px solid #F3CFCF;}
+  .err-msg{color:#C0392B; font-size:12.5px; margin-top:8px; display:none;}
+
+  /* ---- block editor ---- */
+  .block-editor-list{display:flex; flex-direction:column; gap:10px; margin-bottom:10px;}
+  .block-editor-item{border:1px solid var(--line); border-radius:10px; padding:10px;}
+  .block-editor-item .be-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .block-editor-item .be-type{font-size:11px; font-weight:700; color:var(--violet-dark); text-transform:uppercase;}
+  .be-remove{background:none; border:none; color:#C0392B; font-size:11px; font-weight:700;}
+  .be-add-row{display:flex; gap:8px; margin-top:8px;}
+  .be-add-row button{flex:1; font-size:12px; padding:8px; border-radius:8px; border:1px dashed var(--line); background:none; color:var(--ink-soft); font-weight:600;}
+  .be-add-row button:hover{border-color:var(--violet); color:var(--violet-dark);}
+
+  .attach-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
+  .attach-list-item{display:flex; align-items:center; gap:8px; font-size:12.5px; background:var(--bg); border-radius:8px; padding:6px 10px;}
+  .attach-list-item span{flex:1;}
+  .attach-list-item button{background:none; border:none; color:#C0392B; font-size:11px; font-weight:700;}
+
+  @media (max-width:860px){
+    body{flex-direction:column;}
+    .sidebar{position:relative; width:100%; height:auto; flex:none; max-height:none;}
+    .hero{padding:36px 20px 26px;}
+    .hero-illustration-top{width:96px; height:72px;}
+    .content-wrap{padding:8px 20px 60px;}
+    .sector-topbar{padding:14px 18px;}
+    .sector-head{padding:28px 18px 14px;}
+    .list-wrap{padding:18px 18px 60px;}
+    .item-body-inner{padding-left:18px;}
+    .hist-filters{padding:0 18px;}
+    .cat-tiles-grid{grid-template-columns:1fr;}
+    .search-wrap-cat{padding:0 18px;}
+    .recent-row{padding:0 2px 6px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Salto directo al contenido para navegación por teclado / lectores de pantalla -->
+<a href="#mainContent" class="skip-link">Saltar al contenido principal</a>
+
+<aside class="sidebar">
+  <div class="brand" id="brandHome" role="button" tabindex="0" title="Volver al inicio">
+    <div class="brand-mark">KH</div>
+    <div class="brand-name">Know How CAT<span>Jerárquicos Salud</span></div>
+  </div>
+
+  <div id="authBox" class="auth-box" style="display:none;">
+    <div class="who" id="authWho"></div>
+    <div class="role">Supervisor</div>
+    <button class="btn-mini" id="btnLogout">Cerrar sesión</button>
+  </div>
+  <button class="btn-mini btn-mini-accent" id="btnShowLogin" style="margin-bottom:20px;">Iniciar sesión</button>
+
+  <div class="nav-label">Categorías</div>
+  <nav class="side-nav" id="sideNav"></nav>
+
+  <div class="nav-label" id="adminNavLabel" style="display:none; margin-top:14px;">Administración</div>
+  <nav class="side-nav" id="adminNav" style="display:none;">
+    <button class="nav-item" id="btnHistorial"><span class="dot" style="background:#F687B3"></span> Historial de cambios</button>
+  </nav>
+
+  <div class="side-footer">
+    Base de conocimiento del Centro de Atención Telefónica. Lectura libre para todos — la edición requiere sesión de supervisor.
+  </div>
+</aside>
+
+<main id="mainContent" tabindex="-1">
+
+  <!-- ===== VISTA: PORTADA ===== -->
+  <div class="view active" id="view-home">
+    <div class="hero">
+      <svg class="hero-illustration-top" viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="heroG1" x1="0" y1="0" x2="200" y2="140" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6C4AB6"/><stop offset="0.55" stop-color="#17A398"/><stop offset="1" stop-color="#2E9E6B"/>
+          </linearGradient>
+          <linearGradient id="heroG2" x1="0" y1="0" x2="140" y2="100" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#9F7AEA"/><stop offset="1" stop-color="#17A398"/>
+          </linearGradient>
+        </defs>
+        <circle cx="85" cy="60" r="42" stroke="url(#heroG1)" stroke-width="3"/>
+        <circle cx="85" cy="60" r="26" stroke="url(#heroG1)" stroke-width="1.4" opacity="0.45" stroke-dasharray="3 5"/>
+        <line x1="116" y1="91" x2="152" y2="127" stroke="url(#heroG1)" stroke-width="7" stroke-linecap="round"/>
+        <g class="hero-orbit">
+          <circle cx="68" cy="48" r="5" fill="url(#heroG2)" class="hero-pulse"/>
+          <circle cx="100" cy="44" r="4" fill="#2E9E6B"/>
+          <circle cx="90" cy="76" r="4.5" fill="#6C4AB6"/>
+          <line x1="68" y1="48" x2="100" y2="44" stroke="url(#heroG1)" stroke-width="1.3" opacity="0.6"/>
+          <line x1="100" y1="44" x2="90" y2="76" stroke="url(#heroG1)" stroke-width="1.3" opacity="0.6"/>
+          <line x1="90" y1="76" x2="68" y2="48" stroke="url(#heroG1)" stroke-width="1.3" opacity="0.6"/>
+        </g>
+        <circle cx="26" cy="20" r="4" fill="#17A398" opacity="0.7" class="hero-pulse"/>
+        <circle cx="176" cy="30" r="3" fill="#6C4AB6" opacity="0.6"/>
+        <circle cx="20" cy="100" r="3" fill="#2E9E6B" opacity="0.6"/>
+        <circle cx="85" cy="60" r="6" fill="#fff"/>
+      </svg>
+      <div class="eyebrow"><span class="dot"></span> Centro de Atención Telefónica</div>
+      <h1>Toda la info del CAT, a un clic.</h1>
+      <p>Buscá por sector o tema y encontrá la respuesta lista para leer al socio.</p>
+      <div class="search-hero">
+        <div class="search-shell" id="searchShell">
+          <div class="search-inner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="globalSearchInput" type="text" placeholder="Buscar…" autocomplete="off">
+            <span class="kbd-hint" id="kbdHint">/</span>
+          </div>
+        </div>
+        <div class="search-meta" id="globalSearchMeta"></div>
+        <div class="quick-chips" id="quickChips"></div>
+        <div class="global-results" id="globalResults"></div>
+      </div>
+      <div class="stats-strip" id="statsStrip"></div>
+    </div>
+    <div class="content-wrap">
+      <div class="dynamic-panel" id="dynamicPanel"></div>
+      <div class="cat-tiles-wrap" id="catTilesWrap">
+        <div class="loading" id="homeLoading"><span class="loading-spinner"></span> Cargando categorías…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VISTA: CATEGORÍA ===== -->
+  <div class="view" id="view-categoria">
+    <div class="sector-topbar" id="catTopbar">
+      <div class="crumb">
+        <button id="btnBackHomeFromCat">Know How CAT</button>
+        <span class="sep">/</span>
+        <span class="current" id="catCrumb"></span>
+      </div>
+      <div id="catTopIcon" style="font-size:18px;"></div>
+    </div>
+    <div class="sector-head">
+      <h1 id="catTitle"></h1>
+      <p id="catDesc"></p>
+    </div>
+    <div class="search-wrap-cat">
+      <div class="search-shell" id="catSearchShell">
+        <div class="search-inner">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="catSearchInput" type="text" placeholder="Buscar dentro de esta categoría…" autocomplete="off">
+        </div>
+      </div>
+      <div class="search-meta" id="catSearchMeta"></div>
+    </div>
+    <div class="content-wrap">
+      <div class="no-results" id="catNoResults">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#C9C5E0" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div>No encontramos sectores ni temas con esa búsqueda dentro de esta categoría.</div>
+      </div>
+      <div class="grid" id="catGrid"></div>
+    </div>
+  </div>
+
+  <!-- ===== VISTA: SECTOR ===== -->
+  <div class="view" id="view-sector">
+    <div class="sector-topbar">
+      <div class="crumb">
+        <button id="btnBackHome">Know How CAT</button>
+        <span class="sep">/</span>
+        <span class="current" id="sectorCrumb"></span>
+      </div>
+      <div id="sectorTopIcon" style="font-size:18px;"></div>
+    </div>
+    <div class="sector-head">
+      <div class="eyebrow"><span class="dot"></span> <span id="sectorEyebrow"></span></div>
+      <h1 id="sectorTitle"></h1>
+      <p id="sectorDesc"></p>
+    </div>
+    <div class="sector-actions" id="sectorActions" style="display:none;">
+      <button class="btn-add" id="btnAddTema">+ Agregar tema</button>
+    </div>
+    <div class="list-wrap">
+      <div class="no-results" id="sectorNoResults">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#C9C5E0" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div>No encontramos ningún tema con esa búsqueda.</div>
+      </div>
+      <div id="sectorList"></div>
+    </div>
+  </div>
+
+  <!-- ===== VISTA: HISTORIAL ===== -->
+  <div class="view" id="view-historial">
+    <div class="sector-topbar">
+      <div class="crumb">
+        <button id="btnBackHomeFromHist">Know How CAT</button>
+        <span class="sep">/</span>
+        <span class="current">Historial de cambios</span>
+      </div>
+      <div style="font-size:18px;">🕓</div>
+    </div>
+    <div class="sector-head">
+      <h1>Historial de cambios</h1>
+      <p>Quién creó, editó o eliminó cada tema, y cuándo. Solo visible para supervisores.</p>
+    </div>
+    <div class="hist-filters">
+      <select id="histFiltroSupervisor">
+        <option value="">Todos los supervisores</option>
+      </select>
+      <select id="histFiltroSector">
+        <option value="">Todos los sectores</option>
+      </select>
+      <select id="histFiltroAccion">
+        <option value="">Todas las acciones</option>
+        <option value="crear">Alta</option>
+        <option value="editar">Edición</option>
+        <option value="eliminar">Baja</option>
+        <option value="adjuntar_archivo">Adjunto agregado</option>
+        <option value="eliminar_archivo">Adjunto eliminado</option>
+      </select>
+    </div>
+    <div class="list-wrap">
+      <div class="loading" id="histLoading"><span class="loading-spinner"></span> Cargando historial…</div>
+      <div class="no-results" id="histNoResults">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#C9C5E0" stroke-width="1.6"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+      <div>No hay cambios registrados con esos filtros.</div>
+    </div>
+      <div id="histList"></div>
+      <button class="btn-add" id="btnCargarMasHist" style="display:none; margin:16px auto 0;">Cargar más</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== MODAL: LOGIN ===== -->
+<div class="overlay" id="loginOverlay">
+  <div class="modal">
+    <h2>Iniciar sesión — Supervisores</h2>
+    <div class="field-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="usuario@jerarquicos.com" autocomplete="username">
+    </div>
+    <div class="field-group">
+      <label>Contraseña</label>
+      <input type="password" id="loginPassword" autocomplete="current-password">
+    </div>
+    <div class="err-msg" id="loginError"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btnCancelLogin">Cancelar</button>
+      <button class="btn-primary" id="btnDoLogin">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: EDITAR / CREAR TEMA ===== -->
+<div class="overlay" id="editOverlay">
+  <div class="modal" style="max-width:600px;">
+    <h2 id="editModalTitle">Editar tema</h2>
+    <div class="field-group">
+      <label>Título</label>
+      <input type="text" id="editTitulo">
+    </div>
+    <div class="field-group">
+      <label>Fecha de actualización</label>
+      <input type="date" id="editFecha">
+    </div>
+    <div class="field-group">
+      <label>Contenido</label>
+      <div class="block-editor-list" id="blockEditorList"></div>
+      <div class="be-add-row">
+        <button type="button" data-add="p">+ Párrafo</button>
+        <button type="button" data-add="ul">+ Viñetas</button>
+        <button type="button" data-add="links">+ Link / archivo de red</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Archivos adjuntos</label>
+      <input type="file" id="editFileInput">
+      <div class="attach-list" id="attachList"></div>
+    </div>
+    <div class="err-msg" id="editError"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btnCancelEdit">Cancelar</button>
+      <button class="btn-secondary btn-danger" id="btnDeleteTema" style="display:none;">Eliminar</button>
+      <button class="btn-primary" id="btnSaveTema">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// CONFIG
+// ============================================================================
+const SUPABASE_URL = 'https://yuuxnadmsrhoarpkqkxh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_FFh0Hbwg7g3tJ6gVZZPo7w_UQjOjsjc';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const STORAGE_BUCKET = 'adjuntos-kh';
+
+const CATEGORY_COLORS = {};
+const ACCENT_PALETTE = ['#9F7AEA', '#38B2AC', '#14B8A6', '#ED8936', '#7F9CF5', '#F687B3', '#48BB78', '#F56565'];
+
+// ============================================================================
+// STATE
+// ============================================================================
+let sectores = [];
+let temasIndex = [];
+let temasBySectorCache = {};
+let attachmentsCache = {};
+let currentSupervisor = null;
+let currentSectorSlug = null;
+let editingTemaId = null;
+let editingSectorId = null;
+let pendingFile = null;
+
+// ============================================================================
+// INIT
+// ============================================================================
+async function init(){
+  await loadSectoresAndIndex();
+  renderSidebarNav();
+  renderCategoryTiles();
+  renderRecentUpdates();
+  renderStatsStrip();
+  renderQuickChips();
+  setupSearchPlaceholderRotation();
+  await checkSession();
+  handleRoute();
+  window.addEventListener('hashchange', handleRoute);
+}
+
+async function loadSectoresAndIndex(){
+  const [sectoresRes, temasRes] = await Promise.all([
+    sb.from('sectores').select('*').order('orden'),
+    sb.from('temas').select('id, sector_id, titulo, fecha_actualizacion, actualizado_en'),
+  ]);
+  if (sectoresRes.error) { console.error(sectoresRes.error); return; }
+  if (temasRes.error) { console.error(temasRes.error); return; }
+  sectores = sectoresRes.data;
+  temasIndex = temasRes.data;
+}
+
+async function checkSession(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await loadSupervisorProfile();
+  }
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN') { await loadSupervisorProfile(); renderAuthBox(); if(currentSectorSlug) renderSectorView(currentSectorSlug); }
+    if (event === 'SIGNED_OUT') { currentSupervisor = null; renderAuthBox(); if(currentSectorSlug) renderSectorView(currentSectorSlug); }
+  });
+  renderAuthBox();
+}
+
+async function loadSupervisorProfile(){
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { currentSupervisor = null; return; }
+  const { data, error } = await sb.from('supervisores').select('id, nombre_completo, activo').eq('auth_user_id', user.id).single();
+  if (error || !data || !data.activo) { currentSupervisor = null; return; }
+  currentSupervisor = data;
+}
+
+function renderAuthBox(){
+  const box = document.getElementById('authBox');
+  const btnShow = document.getElementById('btnShowLogin');
+  const adminLabel = document.getElementById('adminNavLabel');
+  const adminNav = document.getElementById('adminNav');
+  if (currentSupervisor) {
+    box.style.display = 'block';
+    btnShow.style.display = 'none';
+    document.getElementById('authWho').textContent = currentSupervisor.nombre_completo;
+    adminLabel.style.display = 'block';
+    adminNav.style.display = 'flex';
+  } else {
+    box.style.display = 'none';
+    btnShow.style.display = 'block';
+    adminLabel.style.display = 'none';
+    adminNav.style.display = 'none';
+    // si estaba viendo el historial y se desloguea, lo mandamos a la portada
+    if (window.location.hash === '#/historial') window.location.hash = '#/';
+  }
+}
+
+// ============================================================================
+// ROUTING
+// ============================================================================
+function handleRoute(){
+  const hash = window.location.hash || '#/';
+  if (hash.startsWith('#/sector/')) {
+    const rest = hash.replace('#/sector/', '');
+    const [slugPart, temaPart] = rest.split('?tema=');
+    const slug = decodeURIComponent(slugPart);
+    const temaId = temaPart ? decodeURIComponent(temaPart) : null;
+    showView('view-sector');
+    renderSectorView(slug, temaId);
+    updateSidebarActiveState(null);
+  } else if (hash.startsWith('#/categoria/')) {
+    const catSlug = decodeURIComponent(hash.replace('#/categoria/', ''));
+    showView('view-categoria');
+    renderCategoryView(catSlug);
+    updateSidebarActiveState(catSlug);
+  } else if (hash === '#/historial') {
+    if (!currentSupervisor) { window.location.hash = '#/'; return; }
+    showView('view-historial');
+    renderHistorialView();
+    updateSidebarActiveState(null);
+  } else {
+    showView('view-home');
+    currentSectorSlug = null;
+    updateSidebarActiveState(null);
+  }
+}
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function navigateToSector(slug, temaId){
+  let hash = '#/sector/' + encodeURIComponent(slug);
+  if (temaId) hash += '?tema=' + encodeURIComponent(temaId);
+  window.location.hash = hash;
+}
+
+function navigateToCategory(catSlug){
+  window.location.hash = '#/categoria/' + encodeURIComponent(catSlug);
+}
+
+function updateSidebarActiveState(catSlug){
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.catSlug === catSlug));
+}
+
+// ============================================================================
+// CATEGORÍAS: slugs, sidebar, tiles, panel dinámico, vista de categoría
+// ============================================================================
+function slugifyCategory(name){
+  let s = name.toLowerCase();
+  s = s.replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i').replace(/ó/g,'o').replace(/ú/g,'u').replace(/ñ/g,'n');
+  s = s.replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return s;
+}
+
+function getCategorias(){
+  const nombres = [...new Set(sectores.map(s => s.categoria))];
+  nombres.forEach((cat, i) => { if(!CATEGORY_COLORS[cat]) CATEGORY_COLORS[cat] = ACCENT_PALETTE[i % ACCENT_PALETTE.length]; });
+  return nombres.map(nombre => ({ nombre, slug: slugifyCategory(nombre), color: CATEGORY_COLORS[nombre] }));
+}
+
+function renderSidebarNav(){
+  const categorias = getCategorias();
+  const nav = document.getElementById('sideNav');
+  nav.innerHTML = categorias.map(cat => `
+    <button class="nav-item" data-cat-slug="${cat.slug}">
+      <span class="dot" style="background:${cat.color}"></span> ${escapeHtml(cat.nombre)}
+    </button>
+  `).join('');
+  nav.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => navigateToCategory(btn.dataset.catSlug));
+  });
+}
+
+function temaCountFor(sectorId){
+  return temasIndex.filter(t => t.sector_id === sectorId).length;
+}
+
+function renderCategoryTiles(){
+  const categorias = getCategorias();
+  const wrap = document.getElementById('catTilesWrap');
+  wrap.innerHTML = `
+    <div class="dynamic-panel-head" style="margin-bottom:14px;"><h2>Explorar por categoría</h2></div>
+    <div class="cat-tiles-grid">
+      ${categorias.map(cat => {
+        const sectoresDeCat = sectores.filter(s => s.categoria === cat.nombre);
+        const nTemas = sectoresDeCat.reduce((sum, s) => sum + temaCountFor(s.id), 0);
+        return `
+          <button class="cat-tile" style="--tile-color:${cat.color}" data-cat-slug="${cat.slug}">
+            <div class="cat-tile-icon">${sectoresDeCat[0]?.icono || '📁'}</div>
+            <h3>${escapeHtml(cat.nombre)}</h3>
+            <div class="cat-tile-meta"><b>${sectoresDeCat.length}</b> sector${sectoresDeCat.length===1?'':'es'} · <b>${nTemas}</b> temas</div>
+            <div class="cat-tile-arrow">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </div>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+  wrap.querySelectorAll('.cat-tile').forEach(tile => {
+    tile.addEventListener('click', () => navigateToCategory(tile.dataset.catSlug));
+  });
+}
+
+function renderRecentUpdates(){
+  const panel = document.getElementById('dynamicPanel');
+  const withDate = temasIndex.filter(t => t.actualizado_en).sort((a,b) => new Date(b.actualizado_en) - new Date(a.actualizado_en));
+  const recientes = withDate.slice(0, 10);
+  if (recientes.length === 0) { panel.innerHTML = ''; return; }
+  panel.innerHTML = `
+    <div class="dynamic-panel-head"><span class="pulse-dot"></span><h2>Actualizado recientemente</h2></div>
+    <div class="recent-row" id="recentRow"></div>
+  `;
+  const row = document.getElementById('recentRow');
+  row.innerHTML = recientes.map(t => {
+    const sector = sectores.find(s => s.id === t.sector_id);
+    if (!sector) return '';
+    return `
+      <div class="recent-card" data-slug="${escapeHtml(sector.slug)}" data-tema-id="${t.id}">
+        <div class="rc-sector">${sector.icono} ${escapeHtml(sector.nombre)}</div>
+        <div class="rc-title">${escapeHtml(t.titulo)}</div>
+        <div class="rc-date">${timeAgo(t.actualizado_en)}</div>
+      </div>
+    `;
+  }).join('');
+  row.querySelectorAll('.recent-card').forEach(el => {
+    el.addEventListener('click', () => navigateToSector(el.dataset.slug, el.dataset.temaId));
+  });
+}
+
+function timeAgo(iso){
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'Recién ahora';
+  if (mins < 60) return `Hace ${mins} min`;
+  const hs = Math.floor(mins / 60);
+  if (hs < 24) return `Hace ${hs} h`;
+  const days = Math.floor(hs / 24);
+  if (days === 1) return 'Ayer';
+  if (days < 30) return `Hace ${days} días`;
+  const months = Math.floor(days / 30);
+  return `Hace ${months} mes${months===1?'':'es'}`;
+}
+
+async function renderCategoryView(catSlug){
+  const categorias = getCategorias();
+  const cat = categorias.find(c => c.slug === catSlug);
+  if (!cat) { window.location.hash = '#/'; return; }
+
+  const sectoresDeCat = sectores.filter(s => s.categoria === cat.nombre);
+  const nTemas = sectoresDeCat.reduce((sum, s) => sum + temaCountFor(s.id), 0);
+
+  document.getElementById('catCrumb').textContent = cat.nombre;
+  document.getElementById('catTopIcon').textContent = sectoresDeCat[0]?.icono || '📁';
+  document.getElementById('catTitle').textContent = cat.nombre;
+  document.getElementById('catDesc').textContent = `${sectoresDeCat.length} sector${sectoresDeCat.length===1?'':'es'} · ${nTemas} temas`;
+  document.getElementById('catTopbar').style.setProperty('background', `linear-gradient(120deg, var(--navy) 0%, ${cat.color} 160%)`);
+
+  const catSearchInput = document.getElementById('catSearchInput');
+  catSearchInput.value = '';
+
+  function renderGrid(query){
+    const q = (query || '').trim().toLowerCase();
+    const grid = document.getElementById('catGrid');
+    const noResults = document.getElementById('catNoResults');
+    const meta = document.getElementById('catSearchMeta');
+
+    let visibles = sectoresDeCat;
+    if (q) {
+      visibles = sectoresDeCat.filter(s => {
+        if (s.nombre.toLowerCase().includes(q)) return true;
+        return temasIndex.some(t => t.sector_id === s.id && t.titulo.toLowerCase().includes(q));
+      });
+    }
+
+    meta.innerHTML = q ? `<b>${visibles.length}</b> sector${visibles.length===1?'':'es'} con resultados` : '';
+    noResults.style.display = (q && visibles.length === 0) ? 'block' : 'none';
+
+    grid.innerHTML = visibles.map(s => `
+      <div class="card" data-slug="${escapeHtml(s.slug)}" role="button" tabindex="0">
+        <div class="card-icon">${s.icono}</div>
+        <h3>${highlight(s.nombre, q)}</h3>
+        <span class="sub"><span class="count-up" data-target="${temaCountFor(s.id)}">${temaCountFor(s.id)}</span> tema${temaCountFor(s.id)===1?'':'s'}</span>
+      </div>
+    `).join('');
+    grid.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', () => navigateToSector(card.dataset.slug));
+      card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToSector(card.dataset.slug); } });
+    });
+  }
+
+  renderGrid('');
+  catSearchInput.oninput = () => renderGrid(catSearchInput.value);
+  document.getElementById('catSearchShell').classList.remove('focused');
+}
+
+document.getElementById('btnBackHomeFromCat').addEventListener('click', () => { window.location.hash = '#/'; });
+
+function animateCountUps(container){
+  const els = container.querySelectorAll('.count-up');
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  els.forEach(el => {
+    const target = parseInt(el.dataset.target, 10) || 0;
+    if (prefersReduced || target === 0) { el.textContent = target; return; }
+    const duration = 600;
+    const start = performance.now();
+    function tick(now){
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+function renderStatsStrip(){
+  const strip = document.getElementById('statsStrip');
+  const nSectores = sectores.length;
+  const nTemas = temasIndex.length;
+  const nCategorias = new Set(sectores.map(s => s.categoria)).size;
+  strip.innerHTML = `
+    <div class="stat-pill"><span class="stat-num count-up" data-target="${nTemas}">0</span><span class="stat-label">temas</span></div>
+    <div class="stat-pill"><span class="stat-num count-up" data-target="${nSectores}">0</span><span class="stat-label">sectores</span></div>
+    <div class="stat-pill"><span class="stat-num count-up" data-target="${nCategorias}">0</span><span class="stat-label">categorías</span></div>
+  `;
+  animateCountUps(strip);
+}
+
+const QUICK_SEARCHES = ['Cobro de plus', 'RNAS', 'Reintegros', 'Autorizaciones', 'Farmacia Mutual', 'Vacunas'];
+
+function renderQuickChips(){
+  const wrap = document.getElementById('quickChips');
+  wrap.innerHTML = QUICK_SEARCHES.map(q => `<div class="quick-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</div>`).join('');
+  wrap.querySelectorAll('.quick-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      globalSearchInput.value = chip.dataset.q;
+      globalSearchInput.dispatchEvent(new Event('input'));
+      globalSearchInput.focus();
+    });
+  });
+}
+
+function setupSearchPlaceholderRotation(){
+  const examples = ['cobro de plus…', 'RNAS…', 'reintegros…', 'vacunas…', 'cambio de plan…', 'coseguros…'];
+  const input = globalSearchInput;
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) { input.placeholder = 'Buscar tema o sector…'; return; }
+  let exampleIndex = 0, charIndex = 0, deleting = false;
+  function tick(){
+    if (document.activeElement === input || input.value) { setTimeout(tick, 600); return; }
+    const full = 'Buscar… ej: ' + examples[exampleIndex];
+    if (!deleting) {
+      charIndex++;
+      input.placeholder = full.slice(0, charIndex);
+      if (charIndex >= full.length) { deleting = true; setTimeout(tick, 1400); return; }
+    } else {
+      charIndex--;
+      input.placeholder = full.slice(0, charIndex);
+      if (charIndex <= 13) { deleting = false; exampleIndex = (exampleIndex + 1) % examples.length; }
+    }
+    setTimeout(tick, deleting ? 28 : 45);
+  }
+  tick();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== globalSearchInput && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    if (window.location.hash && window.location.hash !== '#/') window.location.hash = '#/';
+    setTimeout(() => globalSearchInput.focus(), 60);
+  }
+});
+
+// ============================================================================
+// GLOBAL SEARCH (portada)
+// ============================================================================
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function highlight(text, q){
+  if(!q) return escapeHtml(text);
+  const re = new RegExp('(' + escapeRegExp(q) + ')', 'ig');
+  return escapeHtml(text).replace(re, '<mark>$1</mark>');
+}
+
+const globalSearchInput = document.getElementById('globalSearchInput');
+const globalResults = document.getElementById('globalResults');
+const globalSearchMeta = document.getElementById('globalSearchMeta');
+const searchShell = document.getElementById('searchShell');
+
+globalSearchInput.addEventListener('input', () => {
+  const q = globalSearchInput.value.trim().toLowerCase();
+  const belowHero = document.querySelector('#view-home .content-wrap');
+  if (!q) { globalResults.innerHTML = ''; globalSearchMeta.textContent = ''; belowHero.style.display = 'block'; return; }
+  belowHero.style.display = 'none';
+  const matches = temasIndex.filter(t => t.titulo.toLowerCase().includes(q)).slice(0, 30);
+  if (matches.length === 0) {
+    globalSearchMeta.innerHTML = '';
+    globalResults.innerHTML = `
+      <div class="global-empty">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#C9C5E0" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div>No encontramos temas con "${escapeHtml(globalSearchInput.value.trim())}". Probá con otra palabra.</div>
+      </div>`;
+    return;
+  }
+  globalSearchMeta.innerHTML = `<b>${matches.length}</b> resultado${matches.length===1?'':'s'}`;
+  globalResults.innerHTML = matches.map(t => {
+    const sector = sectores.find(s => s.id === t.sector_id);
+    if (!sector) return '';
+    return `
+      <div class="global-result" data-slug="${escapeHtml(sector.slug)}" data-tema-id="${t.id}">
+        <span class="gr-icon">${sector.icono}</span>
+        <span class="gr-title">${highlight(t.titulo, q)}</span>
+        <span class="gr-sector">${escapeHtml(sector.nombre)}</span>
+      </div>
+    `;
+  }).join('');
+  globalResults.querySelectorAll('.global-result').forEach(el => {
+    el.addEventListener('click', () => {
+      navigateToSector(el.dataset.slug, el.dataset.temaId);
+      globalSearchInput.value = '';
+      globalResults.innerHTML = '';
+      globalSearchMeta.textContent = '';
+    });
+  });
+});
+globalSearchInput.addEventListener('focus', () => { searchShell.classList.add('focused'); document.getElementById('kbdHint').style.display = 'none'; });
+globalSearchInput.addEventListener('blur', () => { searchShell.classList.remove('focused'); if(!globalSearchInput.value) document.getElementById('kbdHint').style.display = ''; });
+
+// ============================================================================
+// SECTOR VIEW
+// ============================================================================
+async function renderSectorView(slug, temaId){
+  currentSectorSlug = slug;
+  const sector = sectores.find(s => s.slug === slug);
+  if (!sector) { window.location.hash = '#/'; return; }
+
+  document.getElementById('sectorCrumb').textContent = sector.nombre;
+  document.getElementById('sectorTopIcon').textContent = sector.icono;
+  document.getElementById('sectorEyebrow').textContent = sector.contacto || '';
+  document.getElementById('sectorTitle').textContent = sector.nombre;
+  document.getElementById('sectorDesc').textContent = sector.descripcion || '';
+
+  const actions = document.getElementById('sectorActions');
+  if (currentSupervisor) {
+    actions.style.display = 'flex';
+    document.getElementById('btnAddTema').onclick = () => openEditModal(null, sector.id);
+  } else {
+    actions.style.display = 'none';
+  }
+
+  const listWrap = document.getElementById('sectorList');
+  listWrap.innerHTML = '<div class="loading"><span class="loading-spinner"></span> Cargando temas…</div>';
+
+  let temas = temasBySectorCache[sector.id];
+  if (!temas) {
+    const { data, error } = await sb.from('temas').select('*').eq('sector_id', sector.id).order('titulo');
+    if (error) { listWrap.innerHTML = '<div class="loading">⚠️ No pudimos cargar los temas de este sector. Recargá la página o probá de nuevo en unos segundos.</div>'; return; }
+    temas = data;
+    temasBySectorCache[sector.id] = temas;
+  }
+
+  renderTemasList(temas);
+
+  if (temaId) {
+    // esperamos al próximo frame para asegurarnos de que el DOM ya esté pintado
+    requestAnimationFrame(() => {
+      const item = listWrap.querySelector(`.item[data-id="${temaId}"]`);
+      if (!item) return;
+      listWrap.querySelectorAll('.item.open').forEach(x => x.classList.remove('open'));
+      item.classList.add('open');
+      const tema = temas.find(t => t.id == temaId);
+      if (tema) renderTemaDetail(tema);
+      item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+}
+
+function shortDate(d){
+  if (!d) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+  if (m) return `${m[3]}/${m[2]}/${m[1].slice(2)}`;
+  return d;
+}
+
+function renderTemasList(temas){
+  const listWrap = document.getElementById('sectorList');
+  const noResults = document.getElementById('sectorNoResults');
+
+  listWrap.innerHTML = temas.map(t => `
+    <div class="item" data-id="${t.id}">
+      <div class="item-head" data-toggle="${t.id}">
+        <div class="date-badge ${t.fecha_actualizacion ? '' : 'empty'}">
+          ${t.fecha_actualizacion ? '<span class="lbl">Act.</span><span class="val">' + shortDate(t.fecha_actualizacion) + '</span>' : '<span class="lbl">—</span>'}
+        </div>
+        <span class="item-title">${escapeHtml(t.titulo)}</span>
+        ${currentSupervisor ? `<button class="item-edit-btn" data-edit="${t.id}">Editar</button>` : ''}
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="item-body"><div class="item-body-inner" data-detail="${t.id}"></div></div>
+    </div>
+  `).join('');
+
+  noResults.style.display = temas.length === 0 ? 'block' : 'none';
+
+  listWrap.querySelectorAll('[data-toggle]').forEach(head => {
+    head.addEventListener('click', (e) => {
+      if (e.target.closest('[data-edit]')) return;
+      const id = head.dataset.toggle;
+      const item = listWrap.querySelector(`.item[data-id="${id}"]`);
+      const wasOpen = item.classList.contains('open');
+      listWrap.querySelectorAll('.item.open').forEach(x => x.classList.remove('open'));
+      if (!wasOpen) {
+        item.classList.add('open');
+        const tema = temas.find(t => t.id == id);
+        renderTemaDetail(tema);
+      }
+    });
+  });
+
+  listWrap.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tema = temas.find(t => t.id == btn.dataset.edit);
+      openEditModal(tema, tema.sector_id);
+    });
+  });
+}
+
+function isNetworkPath(url){
+  // detecta rutas tipo W:\Carpeta\Archivo.pdf o \\servidor\Carpeta\Archivo.pdf
+  return /^[A-Za-z]:\\/.test(url) || /^\\\\/.test(url);
+}
+
+async function copyNetworkPath(chipId){
+  const chip = document.getElementById(chipId);
+  if (!chip) return;
+  const path = chip.dataset.path;
+  try {
+    await navigator.clipboard.writeText(path);
+    chip.classList.add('copied');
+    const original = chip.innerHTML;
+    chip.querySelector('em').textContent = '(¡copiada!)';
+    setTimeout(() => { chip.classList.remove('copied'); chip.querySelector('em').textContent = '(copiar ruta)'; }, 1800);
+  } catch (e) {
+    // fallback: prompt para copiar a mano si el navegador bloquea el clipboard API
+    prompt('Copiá esta ruta manualmente (Ctrl+C):', path);
+  }
+}
+
+function renderBlocks(blocks, uid){
+  uid = uid || Math.random().toString(36).slice(2);
+  return (blocks || []).map((b, bi) => {
+    if (b.type === 'ul') {
+      return '<ul>' + b.items.map(it => '<li>' + escapeHtml(it) + '</li>').join('') + '</ul>';
+    }
+    if (b.type === 'links') {
+      const linkIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5"/></svg>';
+      const folderIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>';
+      return '<div class="links-row">' + b.items.map((it, ii) => {
+        const url = String(it.url || '');
+        if (isNetworkPath(url)) {
+          const copyId = `netcopy-${uid}-${bi}-${ii}`;
+          return `<span class="link-chip net-path-chip" id="${copyId}" data-path="${escapeHtml(url)}" title="${escapeHtml(url)}" onclick="copyNetworkPath('${copyId}')">${folderIcon}${escapeHtml(it.text)} <em>(copiar ruta)</em></span>`;
+        }
+        return `<a class="link-chip" href="${url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener">${linkIcon}${escapeHtml(it.text)}</a>`;
+      }).join('') + '</div>';
+    }
+    if (b.type === 'fields') {
+      return '<table class="fields-table">' + b.items.map(it =>
+        `<tr><td>${escapeHtml(it.label)}</td><td>${escapeHtml(it.value)}</td></tr>`
+      ).join('') + '</table>';
+    }
+    if (b.label) {
+      return `<p><span class="lbl-badge">${escapeHtml(b.label)}</span><br>${escapeHtml(b.text)}</p>`;
+    }
+    return `<p>${escapeHtml(b.text || '')}</p>`;
+  }).join('');
+}
+
+async function renderTemaDetail(tema){
+  const el = document.querySelector(`[data-detail="${tema.id}"]`);
+  el.innerHTML = renderBlocks(tema.bloques, tema.id);
+
+  let attachments = attachmentsCache[tema.id];
+  if (!attachments) {
+    const { data, error } = await sb.from('tema_adjuntos').select('*').eq('tema_id', tema.id);
+    attachments = error ? [] : data;
+    attachmentsCache[tema.id] = attachments;
+  }
+  if (attachments.length > 0) {
+    const html = '<div class="attach-row"><div class="attach-label">Archivos adjuntos</div><div class="links-row">' +
+      attachments.map(a => {
+        const { data: pub } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(a.storage_path);
+        return `<a class="link-chip" href="${pub.publicUrl}" target="_blank" rel="noopener">📎 ${escapeHtml(a.nombre_archivo)}</a>`;
+      }).join('') + '</div></div>';
+    el.innerHTML += html;
+  }
+}
+
+// ============================================================================
+// AUTH: LOGIN / LOGOUT
+// ============================================================================
+const loginOverlay = document.getElementById('loginOverlay');
+document.getElementById('btnShowLogin').addEventListener('click', () => {
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  loginOverlay.classList.add('active');
+});
+document.getElementById('btnCancelLogin').addEventListener('click', () => loginOverlay.classList.remove('active'));
+
+document.getElementById('btnDoLogin').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'Completá email y contraseña.'; errEl.style.display = 'block'; return; }
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = 'No pudimos iniciar sesión. Revisá el email y la contraseña.'; errEl.style.display = 'block'; return; }
+
+  await loadSupervisorProfile();
+  if (!currentSupervisor) {
+    errEl.textContent = 'Esta cuenta no está habilitada como supervisor.';
+    errEl.style.display = 'block';
+    await sb.auth.signOut();
+    return;
+  }
+  loginOverlay.classList.remove('active');
+  renderAuthBox();
+  if (currentSectorSlug) renderSectorView(currentSectorSlug);
+});
+
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  currentSupervisor = null;
+  renderAuthBox();
+  if (currentSectorSlug) renderSectorView(currentSectorSlug);
+});
+
+document.getElementById('btnBackHome').addEventListener('click', () => { window.location.hash = '#/'; });
+
+const brandHome = document.getElementById('brandHome');
+brandHome.addEventListener('click', () => { window.location.hash = '#/'; });
+brandHome.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.hash = '#/'; }
+});
+
+// ============================================================================
+// EDIT MODAL: BLOCK EDITOR
+// ============================================================================
+let editingBlocks = [];
+
+function blockEditorRender(){
+  const list = document.getElementById('blockEditorList');
+  list.innerHTML = editingBlocks.map((b, i) => {
+    if (b.type === 'p') {
+      return `
+        <div class="block-editor-item" data-idx="${i}">
+          <div class="be-head"><span class="be-type">Párrafo</span><button class="be-remove" data-remove="${i}">Quitar</button></div>
+          <input type="text" placeholder="Etiqueta (opcional, ej: Cobertura)" data-field="label" data-idx="${i}" value="${escapeHtml(b.label||'')}" style="margin-bottom:6px;">
+          <textarea rows="3" placeholder="Texto" data-field="text" data-idx="${i}" style="width:100%; border:1px solid var(--line); border-radius:9px; padding:8px;">${escapeHtml(b.text||'')}</textarea>
+        </div>`;
+    }
+    if (b.type === 'ul') {
+      return `
+        <div class="block-editor-item" data-idx="${i}">
+          <div class="be-head"><span class="be-type">Viñetas (una por línea)</span><button class="be-remove" data-remove="${i}">Quitar</button></div>
+          <textarea rows="4" data-field="items" data-idx="${i}" style="width:100%; border:1px solid var(--line); border-radius:9px; padding:8px;">${escapeHtml((b.items||[]).join('\n'))}</textarea>
+        </div>`;
+    }
+    if (b.type === 'links') {
+      const currentUrl = (b.items&&b.items[0]&&b.items[0].url)||'';
+      const netHint = isNetworkPath(currentUrl) ? '<div style="font-size:11px; color:var(--teal); margin-top:4px;">📁 Se detectó como ruta de red — se va a mostrar con botón "copiar ruta" en vez de link clicable.</div>' : '';
+      return `
+        <div class="block-editor-item" data-idx="${i}">
+          <div class="be-head"><span class="be-type">Link o archivo de red</span><button class="be-remove" data-remove="${i}">Quitar</button></div>
+          <input type="text" placeholder="Texto a mostrar (ej: Instructivo RNAS)" data-field="linktext" data-idx="${i}" value="${escapeHtml((b.items&&b.items[0]&&b.items[0].text)||'')}" style="margin-bottom:6px;">
+          <input type="text" placeholder="URL (https://…) o ruta de red (W:\\Carpeta\\archivo.pdf)" data-field="linkurl" data-idx="${i}" value="${escapeHtml(currentUrl)}">
+          <div style="font-size:11px; color:var(--ink-soft); margin-top:4px;">Si pegás una ruta tipo W:\\... o \\\\servidor\\..., el sitio la muestra con un botón para copiarla (los navegadores no pueden abrir carpetas de red directamente).</div>
+          ${netHint}
+        </div>`;
+    }
+    return '';
+  }).join('');
+
+  list.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => { editingBlocks.splice(parseInt(btn.dataset.remove), 1); blockEditorRender(); });
+  });
+  list.querySelectorAll('[data-field]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx = parseInt(inp.dataset.idx);
+      const field = inp.dataset.field;
+      const b = editingBlocks[idx];
+      if (field === 'label') b.label = inp.value || null;
+      if (field === 'text') b.text = inp.value;
+      if (field === 'items') b.items = inp.value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (field === 'linktext') { b.items = b.items || [{}]; b.items[0].text = inp.value; }
+      if (field === 'linkurl') { b.items = b.items || [{}]; b.items[0].url = inp.value; }
+    });
+  });
+}
+
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.dataset.add;
+    if (type === 'p') editingBlocks.push({type:'p', label:null, text:''});
+    if (type === 'ul') editingBlocks.push({type:'ul', items:[]});
+    if (type === 'links') editingBlocks.push({type:'links', items:[{text:'', url:''}]});
+    blockEditorRender();
+  });
+});
+
+// ============================================================================
+// EDIT MODAL: OPEN / SAVE / DELETE
+// ============================================================================
+const editOverlay = document.getElementById('editOverlay');
+
+function openEditModal(tema, sectorId){
+  editingTemaId = tema ? tema.id : null;
+  editingSectorId = sectorId;
+  editingBlocks = tema ? JSON.parse(JSON.stringify(tema.bloques || [])) : [];
+  pendingFile = null;
+
+  document.getElementById('editModalTitle').textContent = tema ? 'Editar tema' : 'Agregar tema';
+  document.getElementById('editTitulo').value = tema ? tema.titulo : '';
+  document.getElementById('editFecha').value = tema && tema.fecha_actualizacion ? tema.fecha_actualizacion : '';
+  document.getElementById('editError').style.display = 'none';
+  document.getElementById('btnDeleteTema').style.display = tema ? 'block' : 'none';
+  document.getElementById('editFileInput').value = '';
+
+  blockEditorRender();
+  renderAttachList();
+  editOverlay.classList.add('active');
+}
+
+function renderAttachList(){
+  const wrap = document.getElementById('attachList');
+  if (!editingTemaId) { wrap.innerHTML = '<div style="font-size:12px; color:var(--ink-soft);">Guardá el tema primero para poder adjuntar archivos.</div>'; return; }
+  const attachments = attachmentsCache[editingTemaId] || [];
+  wrap.innerHTML = attachments.map(a => `
+    <div class="attach-list-item">
+      <span>📎 ${escapeHtml(a.nombre_archivo)}</span>
+      <button data-del-attach="${a.id}">Quitar</button>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('[data-del-attach]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const attId = btn.dataset.delAttach;
+      const att = attachments.find(a => a.id == attId);
+      await sb.storage.from(STORAGE_BUCKET).remove([att.storage_path]);
+      await sb.from('tema_adjuntos').delete().eq('id', attId);
+      attachmentsCache[editingTemaId] = attachments.filter(a => a.id != attId);
+      renderAttachList();
+    });
+  });
+}
+
+document.getElementById('editFileInput').addEventListener('change', (e) => {
+  pendingFile = e.target.files[0] || null;
+});
+
+document.getElementById('btnCancelEdit').addEventListener('click', () => editOverlay.classList.remove('active'));
+
+document.getElementById('btnSaveTema').addEventListener('click', async () => {
+  const titulo = document.getElementById('editTitulo').value.trim();
+  const fecha = document.getElementById('editFecha').value || null;
+  const errEl = document.getElementById('editError');
+  errEl.style.display = 'none';
+
+  if (!titulo) { errEl.textContent = 'El título no puede estar vacío.'; errEl.style.display = 'block'; return; }
+
+  let savedTemaId = editingTemaId;
+  try {
+    if (editingTemaId) {
+      const { error } = await sb.from('temas').update({ titulo, fecha_actualizacion: fecha, bloques: editingBlocks }).eq('id', editingTemaId);
+      if (error) throw error;
+    } else {
+      const { data, error } = await sb.from('temas').insert({ sector_id: editingSectorId, titulo, fecha_actualizacion: fecha, bloques: editingBlocks }).select().single();
+      if (error) throw error;
+      savedTemaId = data.id;
+    }
+
+    if (pendingFile) {
+      const path = `${editingSectorId}/${savedTemaId}/${Date.now()}_${pendingFile.name}`;
+      const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, pendingFile);
+      if (upErr) throw upErr;
+      await sb.from('tema_adjuntos').insert({
+        tema_id: savedTemaId, nombre_archivo: pendingFile.name, storage_path: path,
+        tipo_archivo: pendingFile.type, tamano_bytes: pendingFile.size
+      });
+    }
+
+    delete temasBySectorCache[editingSectorId];
+    delete attachmentsCache[savedTemaId];
+    await loadSectoresAndIndex();
+    renderCategoryTiles();
+    renderRecentUpdates();
+    editOverlay.classList.remove('active');
+    if (currentSectorSlug) renderSectorView(currentSectorSlug);
+  } catch (err) {
+    console.error(err);
+    errEl.textContent = 'No pudimos guardar el tema. Probá de nuevo.';
+    errEl.style.display = 'block';
+  }
+});
+
+document.getElementById('btnDeleteTema').addEventListener('click', async () => {
+  if (!editingTemaId) return;
+  if (!confirm('¿Seguro que querés eliminar este tema? Esta acción no se puede deshacer.')) return;
+  const { error } = await sb.from('temas').delete().eq('id', editingTemaId);
+  if (error) { console.error(error); return; }
+  delete temasBySectorCache[editingSectorId];
+  await loadSectoresAndIndex();
+  renderCategoryTiles();
+  renderRecentUpdates();
+  editOverlay.classList.remove('active');
+  if (currentSectorSlug) renderSectorView(currentSectorSlug);
+});
+
+// ============================================================================
+// ============================================================================
+// HISTORIAL DE CAMBIOS
+// ============================================================================
+const HIST_PAGE_SIZE = 40;
+let histOffset = 0;
+let histFiltersLoaded = false;
+
+document.getElementById('btnHistorial').addEventListener('click', () => { window.location.hash = '#/historial'; });
+document.getElementById('btnBackHomeFromHist').addEventListener('click', () => { window.location.hash = '#/'; });
+
+async function loadHistFiltersOnce(){
+  if (histFiltersLoaded) return;
+  histFiltersLoaded = true;
+  const { data: supers } = await sb.from('supervisores').select('id, nombre_completo').order('nombre_completo');
+  const selSup = document.getElementById('histFiltroSupervisor');
+  (supers || []).forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.nombre_completo;
+    selSup.appendChild(opt);
+  });
+  const selSec = document.getElementById('histFiltroSector');
+  sectores.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.nombre;
+    selSec.appendChild(opt);
+  });
+  ['histFiltroSupervisor','histFiltroSector','histFiltroAccion'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => renderHistorialView(true));
+  });
+  document.getElementById('btnCargarMasHist').addEventListener('click', () => renderHistorialView(false));
+}
+
+const ACCION_LABELS = {
+  crear: 'Alta', editar: 'Edición', eliminar: 'Baja',
+  adjuntar_archivo: 'Adjunto agregado', eliminar_archivo: 'Adjunto eliminado'
+};
+
+function fmtFecha(iso){
+  const d = new Date(iso);
+  return d.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+async function renderHistorialView(reset){
+  await loadHistFiltersOnce();
+  if (reset === undefined) reset = true;
+  if (reset) histOffset = 0;
+
+  const loadingEl = document.getElementById('histLoading');
+  const noResultsEl = document.getElementById('histNoResults');
+  const listEl = document.getElementById('histList');
+  const btnMore = document.getElementById('btnCargarMasHist');
+  if (reset) { listEl.innerHTML = ''; loadingEl.style.display = 'block'; noResultsEl.style.display = 'none'; }
+
+  const supFiltro = document.getElementById('histFiltroSupervisor').value;
+  const secFiltro = document.getElementById('histFiltroSector').value;
+  const accFiltro = document.getElementById('histFiltroAccion').value;
+
+  let query = sb.from('historial_cambios')
+    .select('id, accion, titulo_tema, detalle, creado_en, supervisores(nombre_completo), sectores(nombre)')
+    .order('creado_en', { ascending: false })
+    .range(histOffset, histOffset + HIST_PAGE_SIZE - 1);
+
+  if (supFiltro) query = query.eq('supervisor_id', supFiltro);
+  if (secFiltro) query = query.eq('sector_id', secFiltro);
+  if (accFiltro) query = query.eq('accion', accFiltro);
+
+  const { data, error } = await query;
+  loadingEl.style.display = 'none';
+
+  if (error) { listEl.innerHTML += '<div class="loading">⚠️ No pudimos cargar el historial. Recargá la página o probá de nuevo en unos segundos.</div>'; console.error(error); return; }
+
+  if (reset && data.length === 0) { noResultsEl.style.display = 'block'; btnMore.style.display = 'none'; return; }
+
+  listEl.innerHTML += data.map(h => {
+    const quien = h.supervisores ? h.supervisores.nombre_completo : '(usuario no identificado / migración)';
+    const sectorNombre = h.sectores ? h.sectores.nombre : '—';
+    const accionLabel = ACCION_LABELS[h.accion] || h.accion;
+    let diffHtml = '';
+    if (h.accion === 'editar' && h.detalle && h.detalle.antes && h.detalle.despues) {
+      diffHtml = `
+        <button class="hist-toggle-diff" data-toggle-diff="${h.id}">Ver qué cambió</button>
+        <div class="hist-diff" id="diff-${h.id}">
+          <div><b>Título antes:</b> ${escapeHtml(h.detalle.antes.titulo || '')}</div>
+          <div><b>Título después:</b> ${escapeHtml(h.detalle.despues.titulo || '')}</div>
+        </div>`;
+    }
+    return `
+      <div class="hist-item accion-${h.accion}">
+        <span class="hist-badge accion-${h.accion}">${accionLabel}</span>
+        <div class="hist-main">
+          <div class="hist-tema">${escapeHtml(h.titulo_tema || '(sin título)')}</div>
+          <div class="hist-meta"><b>${escapeHtml(quien)}</b> · ${escapeHtml(sectorNombre)} · ${fmtFecha(h.creado_en)}</div>
+          ${diffHtml}
+        </div>
+      </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('[data-toggle-diff]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('diff-' + btn.dataset.toggleDiff).classList.toggle('open');
+    });
+  });
+
+  histOffset += data.length;
+  btnMore.style.display = data.length === HIST_PAGE_SIZE ? 'block' : 'none';
+}
+
+init();
+</script>
+</body>
+</html>
