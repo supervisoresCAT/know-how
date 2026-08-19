@@ -1,0 +1,15 @@
+{
+  "name": "Know How CAT — Jerárquicos Salud",
+  "short_name": "Know How CAT",
+  "description": "Base de conocimiento del Centro de Atención Telefónica de Jerárquicos Salud",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAFAFC",
+  "theme_color": "#1C2541",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
