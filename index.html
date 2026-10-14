@@ -1384,6 +1384,7 @@ function watchAuthChanges(){
     if (event === 'SIGNED_OUT') {
       currentSupervisor = null;
       renderAuthBox();
+      renderNoticiasPanel();
       if (currentSectorSlug) renderSectorView(currentSectorSlug);
     }
   });
@@ -3051,6 +3052,7 @@ document.getElementById('btnDoLogin').addEventListener('click', async () => {
   btn.disabled = false; btn.textContent = 'Ingresar';
   loginOverlay.classList.remove('active');
   renderAuthBox();
+  renderNoticiasPanel();
   if (currentSectorSlug) renderSectorView(currentSectorSlug);
   showToast(`¡Hola, ${currentSupervisor.nombre_completo.split(' ')[0]}! Ya podés editar.`);
 });
@@ -3063,6 +3065,7 @@ document.getElementById('btnLogout').addEventListener('click', async () => {
   await sb.auth.signOut();
   currentSupervisor = null;
   renderAuthBox();
+  renderNoticiasPanel();
   if (currentSectorSlug) renderSectorView(currentSectorSlug);
 });
 
